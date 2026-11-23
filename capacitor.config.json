@@ -1,0 +1,9 @@
+{
+  "appId": "com.miagenda.app",
+  "appName": "Mi Agenda",
+  "webDir": "www",
+  "ios": {
+    "contentInset": "never",
+    "backgroundColor": "#f2f2f7"
+  }
+}

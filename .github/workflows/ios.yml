@@ -1,0 +1,46 @@
+name: Build iOS (IPA sin firmar)
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+
+jobs:
+  build:
+    runs-on: macos-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Instalar dependencias
+        run: npm install
+
+      - name: Crear proyecto iOS
+        run: npx cap add ios
+
+      - name: Generar iconos
+        run: npx @capacitor/assets generate --ios || true
+
+      - name: Sincronizar
+        run: npx cap sync ios
+
+      - name: Compilar sin firmar
+        run: |
+          xcodebuild -workspace ios/App/App.xcworkspace -scheme App \
+            -configuration Release -sdk iphoneos -derivedDataPath build \
+            CODE_SIGNING_ALLOWED=NO CODE_SIGNING_REQUIRED=NO CODE_SIGN_IDENTITY="" \
+            build
+
+      - name: Crear IPA
+        run: |
+          mkdir -p out/Payload
+          cp -R build/Build/Products/Release-iphoneos/App.app out/Payload/
+          cd out && zip -r Mi-Agenda.ipa Payload
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: Mi-Agenda-ipa
+          path: out/Mi-Agenda.ipa
